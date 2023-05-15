@@ -11,9 +11,6 @@ bot = Bot(token=TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
-group_links = []
-dao_addresses = []
-
 # Установка соединения с базой данных
 conn = sqlite3.connect('C:/1. MY FILES/1. PROGRAMMING/3. TON/4. TgBot/for Orbs DAO Python/database.db')  # Подставьте имя вашей базы данных или путь к ней
 cursor = conn.cursor() # Создание курсора
@@ -24,7 +21,12 @@ class UserInput(StatesGroup):
     waiting_dao_address = State()
 
 
-@dp.message_handler(Command("start"), ChatTypeFilter(types.ChatType.PRIVATE))
+@dp.message_handler(Command("start"))
+async def cmd_start(message: types.Message):
+    await message.reply("Привет!")
+
+
+@dp.message_handler(Command("set"), ChatTypeFilter(types.ChatType.PRIVATE))
 async def cmd_start(message: types.Message):
     await message.reply("Привет! Пожалуйста, введите ссылку на группу:")
 
@@ -35,7 +37,6 @@ async def cmd_start(message: types.Message):
 @dp.message_handler(state=UserInput.waiting_group_link)
 async def process_group_link(message: types.Message, state: FSMContext):
     group_link = message.text
-    group_links.append(group_link)
 
     # Сохраняем ссылку на группу в контексте состояния
     await state.update_data(group_link=group_link)
@@ -50,7 +51,6 @@ async def process_group_link(message: types.Message, state: FSMContext):
 @dp.message_handler(state=UserInput.waiting_dao_address)
 async def process_dao_address(message: types.Message, state: FSMContext):
     dao_address = message.text
-    dao_addresses.append(dao_address)
 
     # Получаем данные из контекста состояния
     data = await state.get_data()
@@ -67,6 +67,15 @@ async def process_dao_address(message: types.Message, state: FSMContext):
     await state.finish()
 
 
+@dp.message_handler(Command("start"), ChatTypeFilter(types.ChatType.PRIVATE))
+async def cmd_start(message: types.Message):
+    await message.reply("Привет! Пожалуйста, введите ссылку на группу:")
+
+    # Устанавливаем состояние ожидания ссылки на группу
+    await UserInput.waiting_group_link.set()
+
+
 if __name__ == '__main__':
     # Запуск бота
     executor.start_polling(dp, skip_updates=True)
+    
