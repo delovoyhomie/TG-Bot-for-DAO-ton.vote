@@ -5,7 +5,7 @@ from aiogram.dispatcher.filters import Command
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher.filters import Command, ChatTypeFilter
 import sqlite3, json
-from config import TOKEN
+from token import TOKEN
 from api import proposal
 
 bot = Bot(token=TOKEN)
@@ -47,4 +47,3 @@ async def handle_message(message: types.Message, state: FSMContext):
 if __name__ == '__main__':
     # Запуск бота
     executor.start_polling(dp, skip_updates=True)
-
