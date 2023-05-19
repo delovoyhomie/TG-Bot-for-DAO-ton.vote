@@ -72,6 +72,11 @@ async def cmd_inline_url(message: types.Message):
             addresses = list(item[0] for item in all_addresses)
             names = list(item[0] for item in all_names)
 
+            # Проверка на не пустой массив
+            if not all_addresses or not all_names:
+                await message.answer("Список пуст. Добавьте новый DAO по команде /set")
+                return 
+            
             # Создание кнопок с DAOs
             buttons = []
             for i, item in enumerate(addresses):
@@ -80,7 +85,7 @@ async def cmd_inline_url(message: types.Message):
             # Добавление кнопок к сообщению
             keyboard = types.InlineKeyboardMarkup(row_width=1)
             keyboard.add(*buttons)
-            await message.answer("Кнопки-ссылки", reply_markup=keyboard)
+            await message.answer("Список DAOs ниже:", reply_markup=keyboard)
 
 
 
@@ -100,6 +105,11 @@ async def start(message: types.Message, state: FSMContext):
             all_names = cursor.execute(f"SELECT name_dao FROM DAOs WHERE group_id == '{message.chat.id}'").fetchall()
             names = list(item[0] for item in all_names)
 
+            # Проверка на не пустой массив
+            if not all_addresses or not all_names:
+                await message.answer("Список пуст. Добавьте новый DAO по команде /set")
+                return 
+
             # Создание кнопок с DAOs
             buttons = []
             for i in range(len(names)):
@@ -110,7 +120,7 @@ async def start(message: types.Message, state: FSMContext):
             keyboard = types.InlineKeyboardMarkup(row_width=1)
             keyboard.add(*buttons)
             
-            await message.answer("Кнопки-ссылки", reply_markup=keyboard)
+            await message.answer("Удалите DAO из списка ниже:", reply_markup=keyboard)
 
 
 # Обрабатывание нажатия на inline кнопки
@@ -146,7 +156,7 @@ async def handle_message(message: types.Message, state: FSMContext):
                 if api.daoAddressInfo(dao_address) is None:   
                     await message.answer("DAO с таким адресом не существует, попробуйте другой адрес."), await state.finish()
                 elif not cursor.execute(f"SELECT dao_address FROM DAOs  WHERE group_id == '{group_id}' AND dao_address == '{dao_address}'").fetchall():
-                    await message.answer(f"Вы ввели следующий адрес: {dao_address}"), await state.finish()
+                    await message.answer(f"Вы ввели следующий адрес: \n```{dao_address}```", parse_mode='MarkdownV2'), await state.finish()
                     cursor.execute(f"INSERT INTO DAOs (dao_address, group_id, name_dao) VALUES ('{dao_address}', '{group_id}', '{api.daoAddressInfo(dao_address)[0]}')"), conn.commit() # Добавление в базу данных адрес DAO
                 else:
                     await message.answer("DAO с таким адресом уже существует."), await state.finish()
