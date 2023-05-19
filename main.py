@@ -86,11 +86,14 @@ async def start(message: types.Message):
     for user in chat_admins:
         if (user['status'] == 'administrator' and user['user']['id'] == message.from_user.id) or (user['status'] == 'creator' and user['user']['id'] == message.from_user.id):
 
-            buttons = [
-                InlineKeyboardButton(text="Кнопка 1", callback_data="button1"),
-                InlineKeyboardButton(text="Кнопка 2", callback_data="button2"),
-                InlineKeyboardButton(text="Кнопка 3", callback_data="button3")
-            ]
+            # Получение всех DAOs, которые были настроены в этой группе 
+            all_addresses = cursor.execute(f"SELECT dao_address FROM DAOs WHERE group_id == '{message.chat.id}'").fetchall()
+            addresses = list(item[0] for item in all_addresses)
+
+            # Создание кнопок с DAOs
+            buttons = []
+            for i, item in enumerate(addresses):
+                buttons.append(types.InlineKeyboardButton(text=api.daoAddressInfo(item)[0], callback_data=f"button{i}")) # https://dev-ton-vote-cache.herokuapp.com/dao/{item}
 
             keyboard = types.InlineKeyboardMarkup(row_width=1)
             keyboard.add(*buttons)
