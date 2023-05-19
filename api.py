@@ -34,20 +34,20 @@ def daoAddressInfo(daoAddress):
         data = response.json()  # Получение JSON-данных из ответа
 
         about = json.loads(data['daoMetadata']['about'])['en']
+        name = json.loads(data['daoMetadata']['name'])['en']
         avatar = data['daoMetadata']['avatar']
         website = data['daoMetadata']['github'] 
-        name = json.loads(data['daoMetadata']['name'])['en']
         telegram = data['daoMetadata']['telegram']
-        website = data['daoMetadata']['website']
-        
-        print(about, avatar, website, name, telegram, website, sep = '\n')
+        github = data['daoMetadata']['github']
+
+        countProposals = data['nextProposalId']
 
         return data
 
     except Exception as e:
         print('Произошла ошибка при выполнении запроса (/dao/daoAddress):', e)
 
-print(daoAddressInfo('EQDi7_28cJItXu5t5evsnEKNtUYv_1aQve21T4bzFxbxJ8HF'))
+# print(daoAddressInfo('EQDi7_28cJItXu5t5evsnEKNtUYv_1aQve21T4bzFxbxJ8HF'))
 
 
 def proposal(daoAddress):
