@@ -24,6 +24,7 @@ class States(StatesGroup):
     removeDAOAddress = State()
 
 
+
 ########################################################
 # Приветственная команда для группы
 @dp.message_handler(commands=['start'], chat_type=[types.ChatType.GROUP, types.ChatType.SUPERGROUP])
@@ -34,10 +35,12 @@ async def cmd_start(message: types.Message, state: FSMContext):
         if (user['status'] == 'administrator' and user['user']['id'] == message.from_user.id) or (user['status'] == 'creator' and user['user']['id'] == message.from_user.id):
             await message.answer("Привет! это публичка... ")
 
+
 # Приветственная команда для личных сообщений
 @dp.message_handler(commands=['start'], chat_type=types.ChatType.PRIVATE)
 async def cmd_start(message: types.Message, state: FSMContext):
     await message.answer("Привет! Инструкция: ")
+
 
 
 ########################################################
@@ -50,6 +53,7 @@ async def cmd_set(message: types.Message, state: FSMContext):
         if (user['status'] == 'administrator' and user['user']['id'] == message.from_user.id) or (user['status'] == 'creator' and user['user']['id'] == message.from_user.id):
             await message.answer("Пожалуйста, введите адрес DAO ответным сообщением")
             await States.AddDAOAddress.set()
+
 
 
 ########################################################
@@ -77,6 +81,7 @@ async def cmd_inline_url(message: types.Message):
             keyboard = types.InlineKeyboardMarkup(row_width=1)
             keyboard.add(*buttons)
             await message.answer("Кнопки-ссылки", reply_markup=keyboard)
+
 
 
 ########################################################
@@ -124,28 +129,7 @@ async def process_callback_button(callback: types.CallbackQuery, state: FSMConte
             print(button_data)
             cursor.execute(f"DELETE from DAOs WHERE dao_address == '{button_data}'"), conn.commit()
             await callback.answer("Вы удалили DAO")
-            
 
-
-########################################################
-# Редактирование адреса DAO
-@dp.message_handler(commands=['remove'], chat_type=[types.ChatType.GROUP, types.ChatType.SUPERGROUP])
-async def start(message: types.Message):
-    
-    # Проверка на администратора или создателя группы
-    chat_admins = await bot.get_chat_administrators(message.chat.id)
-    for user in chat_admins:
-        if (user['status'] == 'administrator' and user['user']['id'] == message.from_user.id) or (user['status'] == 'creator' and user['user']['id'] == message.from_user.id):
-        
-            buttons = [
-                InlineKeyboardButton(text="Кнопка 1", callback_data="button1"),
-                InlineKeyboardButton(text="Кнопка 2", callback_data="button2"),
-                InlineKeyboardButton(text="Кнопка 3", callback_data="button3")
-            ]
-
-            keyboard = types.InlineKeyboardMarkup(row_width=1)
-            keyboard.add(*buttons)
-            await message.answer("Кнопки-ссылки", reply_markup=keyboard)
 
 
 ########################################################
@@ -167,7 +151,11 @@ async def handle_message(message: types.Message, state: FSMContext):
                 else:
                     await message.answer("DAO с таким адресом уже существует."), await state.finish()
 
+
+
+
 ########################################################
+# Запуск бота
 if __name__ == '__main__':
     # Запуск бота
     executor.start_polling(dp, skip_updates=True)
