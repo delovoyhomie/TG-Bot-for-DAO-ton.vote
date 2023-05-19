@@ -14,13 +14,14 @@ storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
 # Установка соединения с базой данных
-conn = sqlite3.connect('C:/1. MY FILES/1. PROGRAMMING/3. TON/4. TgBot/for Orbs DAO Python/database.db')  # Подставьте имя вашей базы данных или путь к ней
+conn = sqlite3.connect('C:/1. MY FILES/1. PROGRAMMING/3. TON/4. TgBot/TG-Bot-for-DAO-ton.vote/database.db')  # Подставьте имя вашей базы данных или путь к ней
 cursor = conn.cursor() # Создание курсора
 
-class States(StatesGroup):
+class States(StatesGroup):  
     AddDAOAddress = State()
     SetNewAddress = State()
     waitingRemove = State()
+    removeDAOAddress = State()
 
 
 ########################################################
@@ -63,12 +64,14 @@ async def cmd_inline_url(message: types.Message):
     
             # Получение всех DAOs, которые были настроены в этой группе 
             all_addresses = cursor.execute(f"SELECT dao_address FROM DAOs WHERE group_id == '{message.chat.id}'").fetchall()
+            all_names = cursor.execute(f"SELECT name_dao FROM DAOs WHERE group_id == '{message.chat.id}'").fetchall()
             addresses = list(item[0] for item in all_addresses)
+            names = list(item[0] for item in all_names)
 
             # Создание кнопок с DAOs
             buttons = []
-            for item in addresses:
-                buttons.append(types.InlineKeyboardButton(text=api.daoAddressInfo(item)[0], url = f"https://dev-ton-vote.netlify.app/{item}")) # https://dev-ton-vote-cache.herokuapp.com/dao/{item}
+            for i, item in enumerate(addresses):
+                buttons.append(types.InlineKeyboardButton(text=names[i], url = f"https://dev-ton-vote.netlify.app/{item}")) # https://dev-ton-vote-cache.herokuapp.com/dao/{item}
 
             # Добавление кнопок к сообщению
             keyboard = types.InlineKeyboardMarkup(row_width=1)
@@ -78,30 +81,36 @@ async def cmd_inline_url(message: types.Message):
 
 ########################################################
 # Удаление адреса DAO
-@dp.message_handler(commands=['remove'], chat_type=[types.ChatType.GROUP, types.ChatType.SUPERGROUP])
-async def start(message: types.Message):
+@dp.message_handler(commands=['remove'], state='*', chat_type=[types.ChatType.GROUP, types.ChatType.SUPERGROUP])
+async def start(message: types.Message, state: FSMContext):
     
     # Проверка на администратора или создателя группы
     chat_admins = await bot.get_chat_administrators(message.chat.id)
     for user in chat_admins:
         if (user['status'] == 'administrator' and user['user']['id'] == message.from_user.id) or (user['status'] == 'creator' and user['user']['id'] == message.from_user.id):
 
-            # Получение всех DAOs, которые были настроены в этой группе 
+            # Получение имён всех DAOs, которые были настроены в этой группе 
             all_addresses = cursor.execute(f"SELECT dao_address FROM DAOs WHERE group_id == '{message.chat.id}'").fetchall()
             addresses = list(item[0] for item in all_addresses)
+            all_names = cursor.execute(f"SELECT name_dao FROM DAOs WHERE group_id == '{message.chat.id}'").fetchall()
+            names = list(item[0] for item in all_names)
 
             # Создание кнопок с DAOs
             buttons = []
-            for i, item in enumerate(addresses):
-                buttons.append(types.InlineKeyboardButton(text=api.daoAddressInfo(item)[0], callback_data=f"button{i}")) # https://dev-ton-vote-cache.herokuapp.com/dao/{item}
+            for i in range(len(names)):
+                buttons.append(types.InlineKeyboardButton(text=names[i], callback_data = addresses[i])) # https://dev-ton-vote-cache.herokuapp.com/dao/{item}
+
+            await States.removeDAOAddress.set()
 
             keyboard = types.InlineKeyboardMarkup(row_width=1)
             keyboard.add(*buttons)
+            
             await message.answer("Кнопки-ссылки", reply_markup=keyboard)
 
+
 # Обрабатывание нажатия на inline кнопки
-@dp.callback_query_handler()
-async def process_callback_button(callback: types.CallbackQuery):
+@dp.callback_query_handler(state = States.removeDAOAddress, chat_type=[types.ChatType.GROUP, types.ChatType.SUPERGROUP])
+async def process_callback_button(callback: types.CallbackQuery, state: FSMContext):
     # Проверка на администратора или создателя группы
     chat_admins = await bot.get_chat_administrators(callback['message']['chat']['id'])
     for user in chat_admins:
@@ -109,14 +118,13 @@ async def process_callback_button(callback: types.CallbackQuery):
 
             # Получаем данные из Inline кнопки
             button_data = callback.data
-
+            
             # Обрабатываем выбор пользователя в соответствии с данными из кнопки
-            if button_data == "button1":
-                await callback.answer("Вы выбрали Кнопку 1")
-            elif button_data == "button2":
-                await callback.answer("Вы выбрали Кнопку 2")
-            elif button_data == "button3":
-                await callback.answer("Вы выбрали Кнопку 3")
+            button_data = callback['data']
+            print(button_data)
+            cursor.execute(f"DELETE from DAOs WHERE dao_address == '{button_data}'"), conn.commit()
+            await callback.answer("Вы удалили DAO")
+            
 
 
 ########################################################
@@ -155,7 +163,7 @@ async def handle_message(message: types.Message, state: FSMContext):
                     await message.answer("DAO с таким адресом не существует, попробуйте другой адрес."), await state.finish()
                 elif not cursor.execute(f"SELECT dao_address FROM DAOs  WHERE group_id == '{group_id}' AND dao_address == '{dao_address}'").fetchall():
                     await message.answer(f"Вы ввели следующий адрес: {dao_address}"), await state.finish()
-                    cursor.execute(f"INSERT INTO DAOs (dao_address, group_id) VALUES ('{dao_address}', '{group_id}')"), conn.commit() # Добавление в базу данных адрес DAO
+                    cursor.execute(f"INSERT INTO DAOs (dao_address, group_id, name_dao) VALUES ('{dao_address}', '{group_id}', '{api.daoAddressInfo(dao_address)[0]}')"), conn.commit() # Добавление в базу данных адрес DAO
                 else:
                     await message.answer("DAO с таким адресом уже существует."), await state.finish()
 
