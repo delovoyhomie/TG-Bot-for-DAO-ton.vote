@@ -5,6 +5,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Command
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher.filters import Command, ChatTypeFilter
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import sqlite3, json
 from config import TOKEN
 import api
@@ -16,6 +17,8 @@ dp = Dispatcher(bot, storage=storage)
 # Установка соединения с базой данных
 conn = sqlite3.connect('C:/1. MY FILES/1. PROGRAMMING/3. TON/4. TgBot/TG-Bot-for-DAO-ton.vote/database.db')  # Подставьте имя вашей базы данных или путь к ней
 cursor = conn.cursor() # Создание курсора
+
+scheduler = AsyncIOScheduler() 
 
 class States(StatesGroup):  
     AddDAOAddress = State()
@@ -86,7 +89,7 @@ async def cmd_inline_url(message: types.Message):
             admins.append(user['user']['id'])
 
     if message.from_user.id in admins:
-        # Получение всех DAOs, которые были настроены в этой группе 
+            # Получение всех DAOs, которые были настроены в этой группе 
             all_addresses = cursor.execute(f"SELECT dao_address FROM DAOs WHERE group_id == '{message.chat.id}'").fetchall()
             all_names = cursor.execute(f"SELECT name_dao FROM DAOs WHERE group_id == '{message.chat.id}'").fetchall()
             addresses = list(item[0] for item in all_addresses)
@@ -187,7 +190,7 @@ async def handle_message(message: types.Message, state: FSMContext):
                 await message.answer("DAO с таким адресом не существует, попробуйте другой адрес."), await state.finish()
             elif not cursor.execute(f"SELECT dao_address FROM DAOs  WHERE group_id == '{group_id}' AND dao_address == '{dao_address}'").fetchall():
                 await message.answer(f"Вы ввели следующий адрес: \n```{dao_address}```", parse_mode='MarkdownV2'), await state.finish()
-                cursor.execute(f"INSERT INTO DAOs (dao_address, group_id, name_dao) VALUES ('{dao_address}', '{group_id}', '{api.daoAddressInfo(dao_address)[0]}')"), conn.commit() # Добавление в базу данных адрес DAO
+                cursor.execute(f"INSERT INTO DAOs (dao_address, group_id, name_dao, count_proposals) VALUES ('{dao_address}', '{group_id}', '{api.daoAddressInfo(dao_address)[0]}', '{api.daoAddressInfo(dao_address)[6]}')"), conn.commit() # Добавление в базу данных новую строчку
             else:
                 await message.answer("DAO с таким адресом уже существует."), await state.finish()
         else:
@@ -195,8 +198,26 @@ async def handle_message(message: types.Message, state: FSMContext):
 
 
 
+# Публикация новых proposals по API (/dao)
+# async def post_new_proposal():
+
+#     all_addresses = cursor.execute(f"SELECT dao_address FROM DAOs WHERE group_id == '{message.chat.id}'").fetchall()
+#     all_names = cursor.execute(f"SELECT name_dao FROM DAOs WHERE group_id == '{message.chat.id}'").fetchall()
+#     addresses = list(item[0] for item in all_addresses)
+#     names = list(item[0] for item in all_names)
+
+    # for address in addresses:
+
+
+    
+
+
+
 ########################################################
 # Запуск бота
 if __name__ == '__main__':
+    # scheduler.add_job(post_new_proposal, "interval", minutes=1)
+    # scheduler.start()
+
     # Запуск бота
     executor.start_polling(dp, skip_updates=True)
