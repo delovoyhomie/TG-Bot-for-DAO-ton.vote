@@ -151,20 +151,18 @@ async def start(message: types.Message, state: FSMContext):
         await message.delete()
 
     
-            
-
-
+        
 # Обрабатывание нажатия на inline кнопки
 @dp.callback_query_handler(state = States.removeDAOAddress, chat_type=[types.ChatType.GROUP, types.ChatType.SUPERGROUP])
 async def process_callback_button(callback: types.CallbackQuery, state: FSMContext):
-    
-    # Получаем данные из Inline кнопки
-    button_data = callback.data
-    
+
     # Обрабатываем выбор пользователя в соответствии с данными из кнопки
+
     button_data = callback['data'] # Хранится адрес DAO, которое нужно удалить 
+    name = cursor.execute(f"SELECT name_dao from DAOs WHERE dao_address == '{button_data}'").fetchall()[0][0] # Имя выбранного для удаления DAO
     cursor.execute(f"DELETE from DAOs WHERE dao_address == '{button_data}'"), conn.commit() # Удаление из базы данных строки со всей информацией 
-    await callback.answer("Вы удалили DAO")
+    await callback.message.answer(f"Вы удалили DAO с именем *{name}*", parse_mode='MarkdownV2')
+    await callback.message.delete()
 
 
 
