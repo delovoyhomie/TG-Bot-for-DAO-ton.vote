@@ -6,9 +6,10 @@ from aiogram.dispatcher.filters import Command
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher.filters import Command, ChatTypeFilter
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-import sqlite3, json
+import sqlite3, requests
 from config import TOKEN
 import api
+
 
 bot = Bot(token=TOKEN)
 storage = MemoryStorage()
@@ -199,25 +200,31 @@ async def handle_message(message: types.Message, state: FSMContext):
 
 
 # Публикация новых proposals по API (/dao)
-# async def post_new_proposal():
+async def post_new_proposal():
 
-#     all_addresses = cursor.execute(f"SELECT dao_address FROM DAOs WHERE group_id == '{message.chat.id}'").fetchall()
-#     all_names = cursor.execute(f"SELECT name_dao FROM DAOs WHERE group_id == '{message.chat.id}'").fetchall()
-#     addresses = list(item[0] for item in all_addresses)
-#     names = list(item[0] for item in all_names)
+    all_addresses = cursor.execute(f"SELECT dao_address FROM DAOs").fetchall()
+    addresses = list(item[0] for item in all_addresses)
+    for address in addresses:
+        count_proposals_now = api.daoAddressInfo(address)[6]
+        count_proposals_bd = cursor.execute(f"SELECT count_proposals FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
+        if count_proposals_now != count_proposals_bd:
+            cursor.execute(f"UPDATE DAOs SET count_proposals = {count_proposals_now} WHERE dao_address == '{address}'"), conn.commit()
+            list_proposals = api.daoAddressInfo(address)[7]
 
-    # for address in addresses:
+            # Публикация нового предложения под номером count_proposals_now
+            name_dao = cursor.execute(f"SELECT name_dao FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
+            text = f'новое предложение * {name_dao} *'
+            chat_id = cursor.execute(f"SELECT group_id FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
 
-
-    
-
-
-
+            await bot.send_message(chat_id, text, parse_mode= 'MarkdownV2')
+            
+            
+            
 ########################################################
 # Запуск бота
 if __name__ == '__main__':
-    # scheduler.add_job(post_new_proposal, "interval", minutes=1)
-    # scheduler.start()
+    scheduler.add_job(post_new_proposal, "interval", minutes=1)
+    scheduler.start()
 
     # Запуск бота
     executor.start_polling(dp, skip_updates=True)
