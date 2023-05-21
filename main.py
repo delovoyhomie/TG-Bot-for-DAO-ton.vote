@@ -6,7 +6,8 @@ from aiogram.dispatcher.filters import Command
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher.filters import Command, ChatTypeFilter
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-import sqlite3, requests
+from datetime import datetime
+import sqlite3, json
 from config import TOKEN
 import api
 
@@ -205,7 +206,7 @@ async def post_new_proposal():
     all_addresses = cursor.execute(f"SELECT dao_address FROM DAOs").fetchall()
     addresses = list(item[0] for item in all_addresses)
     for address in addresses:
-        count_proposals_now = api.daoAddressInfo(address)[6]
+        count_proposals_now = api.daoAddressInfo(address)[6] # количество proposals в dao
         count_proposals_bd = cursor.execute(f"SELECT count_proposals FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
         if count_proposals_now != count_proposals_bd:
             cursor.execute(f"UPDATE DAOs SET count_proposals = {count_proposals_now} WHERE dao_address == '{address}'"), conn.commit()
@@ -213,13 +214,31 @@ async def post_new_proposal():
             # print(api.daoAddressInfo(address)[7], count_proposals_now - count_proposals_bd, count_proposals_now, count_proposals_bd, address) # для дебага
             
             for i in range(count_proposals_now - count_proposals_bd):
-                # name_dao = cursor.execute(f"SELECT name_dao FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
-                proposal = api.daoAddressInfo(address)[7][count_proposals_now - (i + 1)]
-                text = f'новое предложение {proposal}'
-                chat_id = cursor.execute(f"SELECT group_id FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
 
                 # Публикация информации о новом предложении в соответсвии с его номером 
-                await bot.send_message(chat_id = chat_id, text = text) 
+                proposalAddress = api.daoAddressInfo(address)[7][count_proposals_now - (i + 1)] # запрос на адрес proposals
+
+                request = api.proposalAddressInfo(proposalAddress)
+
+                title = json.loads(request[0])['en']
+                description = json.loads(request[1])['en']
+                proposalStartTime = datetime.fromtimestamp(request[3])
+                proposalEndTime = datetime.fromtimestamp(request[4])
+
+                
+                name_dao = cursor.execute(f"SELECT name_dao FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0] # название DAO, в котром это предложение
+
+                text = f'новое предложение from {name_dao}\n {title} \n {description} \n start: {proposalStartTime} \n end: {proposalEndTime}'
+                chat_id = cursor.execute(f"SELECT group_id FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
+
+                # Создание кнопок с DAOs
+                buttons = [types.InlineKeyboardButton(text=title, url = f"https://dev-ton-vote.netlify.app/proposal{proposalAddress}")] # names[i]
+
+                # Добавление кнопок к сообщению
+                keyboard = types.InlineKeyboardMarkup(row_width=1)
+                keyboard.add(*buttons)
+
+                await bot.send_message(chat_id = chat_id, text = text, reply_markup=keyboard) 
             
 
 ########################################################
