@@ -209,21 +209,23 @@ async def post_new_proposal():
         count_proposals_bd = cursor.execute(f"SELECT count_proposals FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
         if count_proposals_now != count_proposals_bd:
             cursor.execute(f"UPDATE DAOs SET count_proposals = {count_proposals_now} WHERE dao_address == '{address}'"), conn.commit()
-            list_proposals = api.daoAddressInfo(address)[7]
+            
+            # print(api.daoAddressInfo(address)[7], count_proposals_now - count_proposals_bd, count_proposals_now, count_proposals_bd, address) # для дебага
+            
+            for i in range(count_proposals_now - count_proposals_bd):
+                # name_dao = cursor.execute(f"SELECT name_dao FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
+                proposal = api.daoAddressInfo(address)[7][count_proposals_now - (i + 1)]
+                text = f'новое предложение {proposal}'
+                chat_id = cursor.execute(f"SELECT group_id FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
 
-            # Публикация нового предложения под номером count_proposals_now
-            name_dao = cursor.execute(f"SELECT name_dao FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
-            text = f'новое предложение * {name_dao} *'
-            chat_id = cursor.execute(f"SELECT group_id FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
+                # Публикация информации о новом предложении в соответсвии с его номером 
+                await bot.send_message(chat_id = chat_id, text = text) 
+            
 
-            await bot.send_message(chat_id, text, parse_mode= 'MarkdownV2')
-            
-            
-            
 ########################################################
 # Запуск бота
 if __name__ == '__main__':
-    scheduler.add_job(post_new_proposal, "interval", minutes=1)
+    scheduler.add_job(post_new_proposal, "interval", seconds = 5) # minutes = 1
     scheduler.start()
 
     # Запуск бота
