@@ -243,6 +243,35 @@ async def post_new_proposal():
                 await bot.send_message(chat_id = chat_id, text = text, reply_markup=keyboard) 
             
 
+# Публикование поста в начало голосования
+async def start_proposal(chat_id, title, address, proposalAddress, name_dao, description, proposalEndTime):
+    text = f'Notification! \nProposal start from {name_dao} \n \n {description} \n  \n end: {proposalEndTime}'
+
+    # Создание кнопок с DAOs
+    buttons = [types.InlineKeyboardButton(text=title, url = f"https://dev-ton-vote.netlify.app/{address}/proposal/{proposalAddress}")] # names[i]
+
+    # Добавление кнопок к сообщению
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    keyboard.add(*buttons)
+
+    await bot.send_message(chat_id = chat_id, text = text, reply_markup=keyboard) 
+
+
+
+# Публикование поста в конец голосования
+async def end_proposal(chat_id, title, address, proposalAddress, name_dao, description, yes, no, abstain):
+    text = f'Notification!\nProposal end from {name_dao} \n \n {description} \n \n Proposal result: \n yes: {yes} \n no: {no} \n abstain: {abstain}'
+            
+    # Создание кнопок с DAOs
+    buttons = [types.InlineKeyboardButton(text=title, url = f"https://dev-ton-vote.netlify.app/{address}/proposal/{proposalAddress}")] # names[i]
+
+    # Добавление кнопок к сообщению
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    keyboard.add(*buttons)
+
+    await bot.send_message(chat_id = chat_id, text = text, reply_markup=keyboard) 
+
+
 
 # Каждый день публикуется информация о proposal, когда оно начилось
 async def post_info_proposals_day():
@@ -275,9 +304,13 @@ async def post_info_proposals_day():
 
             # Создание кнопок с DAOs
             buttons = [types.InlineKeyboardButton(text=title, url = f"https://dev-ton-vote.netlify.app/{address}/proposal/{proposalAddress}")] # names[i]
+
             # Добавление кнопок к сообщению
             keyboard = types.InlineKeyboardMarkup(row_width=1)
             keyboard.add(*buttons)
+
+            scheduler.add_job(start_proposal, "date", run_date=proposalStartTime, args=(chat_id, title, address, proposalAddress, name_dao, description, proposalEndTime))
+            scheduler.add_job(start_proposal, "date", run_date=proposalStartTime, args=(chat_id, title, address, proposalAddress, name_dao, description, yes, no, abstain))
 
             await bot.send_message(chat_id = chat_id, text = text, reply_markup=keyboard) 
 
