@@ -225,9 +225,16 @@ async def post_new_proposal():
                     description = request[1]
                     proposalStartTime = datetime.fromtimestamp(request[3])
                     proposalEndTime = datetime.fromtimestamp(request[4])
+                    yes = request[5]
+                    no = request[6]
+                    abstain = request[7]
+
+                    # For debagging
+                    # proposalStartTime = datetime.fromtimestamp(1684677540) 
+                    # proposalEndTime = datetime.fromtimestamp(1684677540)
                 except:
                     return
-
+                
                 
                 name_dao = cursor.execute(f"SELECT name_dao FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0] # название DAO, в котром это предложение
 
@@ -239,6 +246,10 @@ async def post_new_proposal():
                 # Добавление кнопок к сообщению
                 keyboard = types.InlineKeyboardMarkup(row_width=1)
                 keyboard.add(*buttons)
+
+                scheduler.add_job(start_proposal, "date", run_date=proposalStartTime, args=(chat_id, title, address, proposalAddress, name_dao, description, proposalEndTime))
+                scheduler.add_job(end_proposal, "date", run_date=proposalEndTime, args=(chat_id, title, address, proposalAddress, name_dao, description, yes, no, abstain))
+
 
                 await bot.send_message(chat_id = chat_id, text = text, reply_markup=keyboard) 
             
@@ -298,6 +309,7 @@ async def post_info_proposals_day():
             except:
                 return
             
+
             name_dao = cursor.execute(f"SELECT name_dao FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0] # название DAO, в котром это предложение
             text = f'Notification! \n Proposal from {name_dao} \n \n {description} \n \n start: {proposalStartTime} \n end: {proposalEndTime}, \n \n Proposal result: \n yes: {yes} \n no: {no} \n abstain: {abstain}'
             chat_id = cursor.execute(f"SELECT group_id FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
@@ -309,9 +321,6 @@ async def post_info_proposals_day():
             keyboard = types.InlineKeyboardMarkup(row_width=1)
             keyboard.add(*buttons)
 
-            scheduler.add_job(start_proposal, "date", run_date=proposalStartTime, args=(chat_id, title, address, proposalAddress, name_dao, description, proposalEndTime))
-            scheduler.add_job(start_proposal, "date", run_date=proposalStartTime, args=(chat_id, title, address, proposalAddress, name_dao, description, yes, no, abstain))
-
             await bot.send_message(chat_id = chat_id, text = text, reply_markup=keyboard) 
 
 
@@ -319,8 +328,8 @@ async def post_info_proposals_day():
 ########################################################
 # Запуск бота
 if __name__ == '__main__':
-    scheduler.add_job(post_new_proposal, "interval", seconds = 3) # minutes = 1
-    scheduler.add_job(post_info_proposals_day, "interval", seconds = 10) # minutes = 1
+    scheduler.add_job(post_new_proposal, "interval", minutes = 1) # minutes = 1
+    scheduler.add_job(post_info_proposals_day, "interval", days = 1) # minutes = 1
     scheduler.start()
 
     # Запуск бота
