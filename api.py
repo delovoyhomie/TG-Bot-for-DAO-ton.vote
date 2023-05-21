@@ -52,23 +52,24 @@ def proposalAddressInfo(proposalAddress):
         response = requests.get(url)
         data = response.json()  # Получение JSON-данных из ответа
         
-        title = data['metadata']['title']
-        description = data['metadata']['description']
+        title = json.loads(data['metadata']['title'])['en']
+        description = json.loads(data['metadata']['description'])['en']
         daoAddress = data['daoAddress']
         proposalStartTime = data['metadata']['proposalStartTime']
         proposalEndTime = data['metadata']['proposalEndTime']
 
+
+        
         #proposalResult
-        yes = data['proposalResult']['yes']
-        no = data['proposalResult']['no']
-        abstain = data['proposalResult']['abstain']
-
-
+        if 'yes' in data['proposalResult'][0]:
+            yes = data['proposalResult']['yes']
+            no = data['proposalResult']['no']
+            abstain = data['proposalResult']['abstain']
+        
+    
         return title, description, daoAddress, proposalStartTime, proposalEndTime, yes, no, abstain
 
     except Exception as e:
         print('Произошла ошибка при выполнении запроса (/proposal/proposalAddress):', e)
     
 # print(proposalAddressInfo('EQCc8vSY5grdLTeTjqUnnCHDQ0mkf906cWf1ap_g0LeRShSg'))
-
-

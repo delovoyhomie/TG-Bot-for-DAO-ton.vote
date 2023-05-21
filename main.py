@@ -219,11 +219,14 @@ async def post_new_proposal():
                 proposalAddress = api.daoAddressInfo(address)[7][count_proposals_now - (i + 1)] # запрос на адрес proposals
                 # cursor.execute(f"INSERT INTO DAOs (suggestions) VALUES ('{api.daoAddressInfo(address)[7]}')")
                 request = api.proposalAddressInfo(proposalAddress)
-
-                title = json.loads(request[0])['en']
-                description = json.loads(request[1])['en']
-                proposalStartTime = datetime.fromtimestamp(request[3])
-                proposalEndTime = datetime.fromtimestamp(request[4])
+                
+                try:
+                    title = json.loads(request[0])['en']
+                    description = json.loads(request[1])['en']
+                    proposalStartTime = datetime.fromtimestamp(request[3])
+                    proposalEndTime = datetime.fromtimestamp(request[4])
+                except Exception as e:
+                    pass
 
                 
                 name_dao = cursor.execute(f"SELECT name_dao FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0] # название DAO, в котром это предложение
@@ -256,8 +259,8 @@ async def post_info_proposals_day():
 
             try:
                 request = api.proposalAddressInfo(proposalAddress)
-                title = json.loads(request[0])['en']
-                description = json.loads(request[1])['en']
+                title = request[0]
+                description = request[1]
                 proposalStartTime = datetime.fromtimestamp(request[3])
                 proposalEndTime = datetime.fromtimestamp(request[4])
                 yes = request[5]
@@ -286,7 +289,7 @@ async def post_info_proposals_day():
 # Запуск бота
 if __name__ == '__main__':
     scheduler.add_job(post_new_proposal, "interval", seconds = 3) # minutes = 1
-    scheduler.add_job(post_info_proposals_day, "interval", seconds = 5) # minutes = 1
+    scheduler.add_job(post_info_proposals_day, "interval", seconds = 60) # minutes = 1
     scheduler.start()
 
     # Запуск бота
