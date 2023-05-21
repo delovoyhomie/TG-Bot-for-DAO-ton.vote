@@ -209,15 +209,15 @@ async def post_new_proposal():
         count_proposals_now = api.daoAddressInfo(address)[6] # количество proposals в dao
         count_proposals_bd = cursor.execute(f"SELECT count_proposals FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
         if count_proposals_now != count_proposals_bd:
-            cursor.execute(f"UPDATE DAOs SET count_proposals = {count_proposals_now} WHERE dao_address == '{address}'"), conn.commit()
+            cursor.execute(f"UPDATE DAOs SET count_proposals = {count_proposals_now} WHERE dao_address == '{address}'"), conn.commit() # обновление количества proposals
             
             # print(api.daoAddressInfo(address)[7], count_proposals_now - count_proposals_bd, count_proposals_now, count_proposals_bd, address) # для дебага
             
             for i in range(count_proposals_now - count_proposals_bd):
-
+            
                 # Публикация информации о новом предложении в соответсвии с его номером 
                 proposalAddress = api.daoAddressInfo(address)[7][count_proposals_now - (i + 1)] # запрос на адрес proposals
-
+                # cursor.execute(f"INSERT INTO DAOs (suggestions) VALUES ('{api.daoAddressInfo(address)[7]}')")
                 request = api.proposalAddressInfo(proposalAddress)
 
                 title = json.loads(request[0])['en']
@@ -232,8 +232,7 @@ async def post_new_proposal():
                 chat_id = cursor.execute(f"SELECT group_id FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
 
                 # Создание кнопок с DAOs
-                buttons = [types.InlineKeyboardButton(text=title, url = f"https://dev-ton-vote.netlify.app/proposal/{proposalAddress}")] # names[i]
-
+                buttons = [types.InlineKeyboardButton(text=title, url = f"https://dev-ton-vote.netlify.app/{address}/proposal/{proposalAddress}")] # names[i]
                 # Добавление кнопок к сообщению
                 keyboard = types.InlineKeyboardMarkup(row_width=1)
                 keyboard.add(*buttons)
@@ -241,10 +240,48 @@ async def post_new_proposal():
                 await bot.send_message(chat_id = chat_id, text = text, reply_markup=keyboard) 
             
 
+
+# Каждый день публикуется информация о proposal, когда оно начилось
+async def post_info_proposals_day():
+    all_addresses = cursor.execute(f"SELECT dao_address FROM DAOs").fetchall()
+    addresses = list(item[0] for item in all_addresses)
+
+    for address in addresses:
+        count_proposals_now = api.daoAddressInfo(address)[6] # количество proposals в dao
+
+        for i in range(count_proposals_now):
+            
+            # Публикация информации о новом предложении в соответсвии с его номером 
+            proposalAddress = api.daoAddressInfo(address)[7][i] # запрос на адрес proposals
+
+            request = api.proposalAddressInfo(proposalAddress)
+
+            title = json.loads(request[0])['en']
+            description = json.loads(request[1])['en']
+            proposalStartTime = datetime.fromtimestamp(request[3])
+            proposalEndTime = datetime.fromtimestamp(request[4])
+
+            
+            name_dao = cursor.execute(f"SELECT name_dao FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0] # название DAO, в котром это предложение
+
+            text = f'Notification! \n Proposal from {name_dao} \n \n {description} \n \n start: {proposalStartTime} \n end: {proposalEndTime}'
+            chat_id = cursor.execute(f"SELECT group_id FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
+
+            # Создание кнопок с DAOs
+            buttons = [types.InlineKeyboardButton(text=title, url = f"https://dev-ton-vote.netlify.app/{address}/proposal/{proposalAddress}")] # names[i]
+            # Добавление кнопок к сообщению
+            keyboard = types.InlineKeyboardMarkup(row_width=1)
+            keyboard.add(*buttons)
+
+            await bot.send_message(chat_id = chat_id, text = text, reply_markup=keyboard) 
+
+
+
 ########################################################
 # Запуск бота
 if __name__ == '__main__':
-    scheduler.add_job(post_new_proposal, "interval", seconds = 5) # minutes = 1
+    scheduler.add_job(post_new_proposal, "interval", seconds = 3) # minutes = 1
+    scheduler.add_job(post_info_proposals_day, "interval", seconds = 30) # minutes = 1
     scheduler.start()
 
     # Запуск бота

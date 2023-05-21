@@ -11,14 +11,6 @@ def daos(daoAddress):
         
         return data
 
-        # for i in range(len(data)):
-        #     address = data[i]['daoAddress'] 
-        #     if address == daoAddress:
-        #         print(data[i])
-        #         return data[i]
-            
-        # return 'Not Found'
-
     except Exception as e:
         print('Произошла ошибка при выполнении запроса (/daos):', e)
 
@@ -41,29 +33,36 @@ def daoAddressInfo(daoAddress):
         github = data['daoMetadata']['github']
 
         countProposals = data['nextProposalId']
+        daoProposals = data['daoProposals']
 
-        return name, about, avatar, website, telegram, github
+        return name, about, avatar, website, telegram, github, countProposals, daoProposals
 
     except Exception as e:
         print('Произошла ошибка при выполнении запроса (/dao/daoAddress):', e)
 
-# print(daoAddressInfo('EQDi7_28cJItXu5t5evsnEKNtUYv_1aQve21T4bzFxbxJ8H'))
+# print(daoAddressInfo('EQDi7_28cJItXu5t5evsnEKNtUYv_1aQve21T4bzFxbxJ8HF')[7][0])
 
 
-def proposal(daoAddress):
+def proposalAddressInfo(proposalAddress):
 
     # Запрос на json с предложениями по DAO
-    url = f'https://dev-ton-vote-cache.herokuapp.com/proposal/{daoAddress}'
+    url = f'https://dev-ton-vote-cache.herokuapp.com/proposal/{proposalAddress}'
 
     try:
         response = requests.get(url)
         data = response.json()  # Получение JSON-данных из ответа
-        return data
-    
-        # Обработка полученных данных
-        # ...daoAddress
+        
+        title = data['metadata']['title']
+        description = data['metadata']['description']
+        daoAddress = data['daoAddress']
+        proposalStartTime = data['metadata']['proposalStartTime']
+        proposalEndTime = data['metadata']['proposalEndTime']
+
+        return title, description, daoAddress, proposalStartTime, proposalEndTime
 
     except Exception as e:
-        print('Произошла ошибка при выполнении запроса (/proposal/address_dao):', e)
+        print('Произошла ошибка при выполнении запроса (/proposal/proposalAddress):', e)
     
 # print(proposal('EQCc8vSY5grdLTeTjqUnnCHDQ0mkf906cWf1ap_g0LeRShSg'))
+
+
