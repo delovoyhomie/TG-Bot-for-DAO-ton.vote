@@ -61,15 +61,15 @@ def proposalAddressInfo(proposalAddress):
 
         
         #proposalResult
-        if 'yes' in data['proposalResult'][0]:
+        yes, no, abstain = None, None, None
+        if data['proposalResult']:
             yes = data['proposalResult']['yes']
             no = data['proposalResult']['no']
             abstain = data['proposalResult']['abstain']
         
-    
         return title, description, daoAddress, proposalStartTime, proposalEndTime, yes, no, abstain
 
     except Exception as e:
         print('Произошла ошибка при выполнении запроса (/proposal/proposalAddress):', e)
     
-# print(proposalAddressInfo('EQCc8vSY5grdLTeTjqUnnCHDQ0mkf906cWf1ap_g0LeRShSg'))
+# print(proposalAddressInfo('EQDfb8TzJjHrbeK7KnOv_Ao5pVBTP02uK8NiXaP4MlmU0y6N')[1])
