@@ -228,11 +228,11 @@ async def post_new_proposal():
                 
                 name_dao = cursor.execute(f"SELECT name_dao FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0] # название DAO, в котром это предложение
 
-                text = f'новое предложение from {name_dao}\n {title} \n {description} \n start: {proposalStartTime} \n end: {proposalEndTime}'
+                text = f'New proposal from {name_dao} \n \n {description} \n \n start: {proposalStartTime} \n end: {proposalEndTime}'
                 chat_id = cursor.execute(f"SELECT group_id FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
 
                 # Создание кнопок с DAOs
-                buttons = [types.InlineKeyboardButton(text=title, url = f"https://dev-ton-vote.netlify.app/proposal{proposalAddress}")] # names[i]
+                buttons = [types.InlineKeyboardButton(text=title, url = f"https://dev-ton-vote.netlify.app/proposal/{proposalAddress}")] # names[i]
 
                 # Добавление кнопок к сообщению
                 keyboard = types.InlineKeyboardMarkup(row_width=1)
