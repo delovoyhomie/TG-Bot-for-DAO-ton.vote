@@ -250,21 +250,26 @@ async def post_info_proposals_day():
         count_proposals_now = api.daoAddressInfo(address)[6] # количество proposals в dao
 
         for i in range(count_proposals_now):
-            
+
             # Публикация информации о новом предложении в соответсвии с его номером 
             proposalAddress = api.daoAddressInfo(address)[7][i] # запрос на адрес proposals
 
-            request = api.proposalAddressInfo(proposalAddress)
-
-            title = json.loads(request[0])['en']
-            description = json.loads(request[1])['en']
-            proposalStartTime = datetime.fromtimestamp(request[3])
-            proposalEndTime = datetime.fromtimestamp(request[4])
+            try:
+                request = api.proposalAddressInfo(proposalAddress)
+                title = json.loads(request[0])['en']
+                description = json.loads(request[1])['en']
+                proposalStartTime = datetime.fromtimestamp(request[3])
+                proposalEndTime = datetime.fromtimestamp(request[4])
+                yes = request[5]
+                no = request[6]
+                abstain = request[7]
+            except Exception as e:
+                pass
 
             
             name_dao = cursor.execute(f"SELECT name_dao FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0] # название DAO, в котром это предложение
 
-            text = f'Notification! \n Proposal from {name_dao} \n \n {description} \n \n start: {proposalStartTime} \n end: {proposalEndTime}'
+            text = f'Notification! \n Proposal from {name_dao} \n \n {description} \n \n start: {proposalStartTime} \n end: {proposalEndTime}, \n \n Proposal result: \n yes: {yes} \n no: {no} \n abstain: {abstain}'
             chat_id = cursor.execute(f"SELECT group_id FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
 
             # Создание кнопок с DAOs
@@ -281,7 +286,7 @@ async def post_info_proposals_day():
 # Запуск бота
 if __name__ == '__main__':
     scheduler.add_job(post_new_proposal, "interval", seconds = 3) # minutes = 1
-    scheduler.add_job(post_info_proposals_day, "interval", seconds = 30) # minutes = 1
+    scheduler.add_job(post_info_proposals_day, "interval", seconds = 5) # minutes = 1
     scheduler.start()
 
     # Запуск бота
