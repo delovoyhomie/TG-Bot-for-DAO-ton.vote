@@ -44,7 +44,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
             admins.append(user['user']['id'])
 
     if message.from_user.id in admins:
-        await message.answer("Привет! это публичка... ")
+        await message.answer("Greetings!\n\nI assist in keeping you updated on proposals of DAOs you're interested in by automatically sending notifications directly into this chat.\n\nHere are the main commands you can use with me:\n\n/set - this is the first command you'll use to start working with me. With it, you set the DAO address that you can find on your DAO's page below the title line. After setting, I will start sending you notifications about new proposals for this DAO.\n\n/list - this command allows you to see a list of all DAOs for which you're receiving proposal notifications in this chat.\n\n/remove - if you've decided that you no longer want to receive notifications about proposals for a certain DAO, you can remove it from your list.")
     else:
         await message.delete()
 
@@ -52,7 +52,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
 # Welcome message for personal messages with the bot
 @dp.message_handler(commands=['start'], chat_type=types.ChatType.PRIVATE)
 async def cmd_start(message: types.Message, state: FSMContext):
-    await message.answer("Привет! Инструкция: ")
+    await message.answer("Greetings!\n\nI was created to operate in groups, assisting the entire team in keeping track of new DAO proposals. To start using me in your group, follow these steps:\n\n1) Add me to the group where you want to receive DAO notifications.\n2) Appoint me as an administrator in this group. This is necessary for me to correctly process commands and manage notifications.\n3) Grant me the right to delete messages. This will enable me to properly handle the commands that you and other group members will send.\n\nAfter completing these steps, you will be able to use all the same commands, but now within the group. This will allow all group members to stay updated on the latest proposals for the DAOs that interest you.\n\nIf you encounter any problems or have questions during the setup process, contact my creator - @delovoyslava, he's always ready to help!")
 
 
 
@@ -70,7 +70,7 @@ async def cmd_set(message: types.Message, state: FSMContext):
             admins.append(user['user']['id'])
 
     if message.from_user.id in admins:
-        await message.answer("Пожалуйста, введите адрес DAO ответным сообщением")
+        await message.answer("Please reply with the DAO address.")
         await States.AddDAOAddress.set()
     else:
         await message.delete()
@@ -99,7 +99,7 @@ async def cmd_inline_url(message: types.Message):
 
             # Check for a non-empty array
             if not all_addresses or not all_names:
-                await message.answer("Список пуст. Добавьте новый DAO по команде /set")
+                await message.answer("The list is empty. Add a new DAO using the /set command.")
                 return 
             
             # Creatе buttons with DAOs
@@ -138,7 +138,7 @@ async def start(message: types.Message, state: FSMContext):
 
         # Check for a non-empty array
         if not all_addresses or not all_names:
-            await message.answer("Список пуст. Добавьте новый DAO по команде /set")
+            await message.answer("The list is empty. Add a new DAO using the /set command.")
             return 
 
         # Create buttons with DAOs
@@ -151,7 +151,7 @@ async def start(message: types.Message, state: FSMContext):
         keyboard = types.InlineKeyboardMarkup(row_width=1)
         keyboard.add(*buttons)
         
-        await message.answer("Удалите DAO из списка ниже:", reply_markup=keyboard)
+        await message.answer("Remove the DAO from the list below:", reply_markup=keyboard)
     else:
         await message.delete()
 
@@ -166,7 +166,7 @@ async def process_callback_button(callback: types.CallbackQuery, state: FSMConte
     button_data = callback['data'] # The address of the DAO that needs to be deleted is stored
     name = cursor.execute(f"SELECT name_dao from DAOs WHERE dao_address == '{button_data}'").fetchall()[0][0] # The name of the selected DAO for deletion is stored
     cursor.execute(f"DELETE from DAOs WHERE dao_address == '{button_data}'"), conn.commit() # Delete a row with all the information from the database
-    await callback.message.answer(f"Вы удалили DAO с именем *{name}*", parse_mode='MarkdownV2')
+    await callback.message.answer(f"You have removed the DAO named *{name}*", parse_mode='MarkdownV2')
     await callback.message.delete()
 
 
@@ -189,12 +189,12 @@ async def handle_message(message: types.Message, state: FSMContext):
             dao_address = message.text
             group_id = message.chat.id
             if api.daoAddressInfo(dao_address) is None:   
-                await message.answer("DAO с таким адресом не существует, попробуйте другой адрес."), await state.finish()
+                await message.answer("A DAO with such an address does not exist, try a different address."), await state.finish()
             elif not cursor.execute(f"SELECT dao_address FROM DAOs  WHERE group_id == '{group_id}' AND dao_address == '{dao_address}'").fetchall():
-                await message.answer(f"Вы ввели следующий адрес: \n```{dao_address}```", parse_mode='MarkdownV2'), await state.finish()
+                await message.answer(f"You have entered the following address: \n```{dao_address}```", parse_mode='MarkdownV2'), await state.finish()
                 cursor.execute(f"INSERT INTO DAOs (dao_address, group_id, name_dao, count_proposals) VALUES ('{dao_address}', '{group_id}', '{api.daoAddressInfo(dao_address)[0]}', '{api.daoAddressInfo(dao_address)[6]}')"), conn.commit() # Add a new row to the database
             else:
-                await message.answer("DAO с таким адресом уже существует."), await state.finish()
+                await message.answer("A DAO with such an address already exists."), await state.finish()
         else:
             await message.delete()
 
@@ -211,7 +211,7 @@ async def post_new_proposal():
         if count_proposals_now != count_proposals_bd:
             cursor.execute(f"UPDATE DAOs SET count_proposals = {count_proposals_now} WHERE dao_address == '{address}'"), conn.commit() # Update the number of proposals
             
-            # print(api.daoAddressInfo(address)[7], count_proposals_now - count_proposals_bd, count_proposals_now, count_proposals_bd, address) # For debagging
+            # print(api.daoAddressInfo(address)[7], count_proposals_now - count_proposals_bd, count_proposals_now, count_proposals_bd, address) # For debugging
             
             for i in range(count_proposals_now - count_proposals_bd):
             
@@ -229,7 +229,7 @@ async def post_new_proposal():
                     no = request[6]
                     abstain = request[7]
 
-                    # For debagging
+                    # For debugging
                     # proposalStartTime = datetime.fromtimestamp(1684677540) 
                     # proposalEndTime = datetime.fromtimestamp(1684677540)
                 except:
@@ -238,7 +238,7 @@ async def post_new_proposal():
                 
                 name_dao = cursor.execute(f"SELECT name_dao FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0] # Name of the DAO in which this sentence is
 
-                text = f'New proposal from {name_dao} \n \n {description} \n \n start: {proposalStartTime} \n end: {proposalEndTime}'
+                text = f'🔔 New proposal for DAO!\n\n🔵 Voting: {description}\n📜 Proposal: {name_dao}\n\n⏰ Start time: {proposalStartTime}\n🔚 End time: {proposalEndTime}\n\nPlease review the proposal and participate in the voting!'
                 chat_id = cursor.execute(f"SELECT group_id FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
 
                 # Create buttons with DAOs
@@ -257,7 +257,7 @@ async def post_new_proposal():
 
 # Publish a post at the start of voting
 async def start_proposal(chat_id, title, address, proposalAddress, name_dao, description, proposalEndTime):
-    text = f'Notification! \nProposal start from {name_dao} \n \n {description} \n  \n end: {proposalEndTime}'
+    text = f'🚀 Voting has begun!\n\n🔵 Voting: {description}\n📜 Proposal: {name_dao}\n\n🔚 End time: {proposalEndTime}\n\nVoting has started! Please review the proposal and participate in the voting!'
 
     # Create buttons with DAOs
     buttons = [types.InlineKeyboardButton(text=title, url = f"https://dev-ton-vote.netlify.app/{address}/proposal/{proposalAddress}")] # names[i]
@@ -272,8 +272,13 @@ async def start_proposal(chat_id, title, address, proposalAddress, name_dao, des
 
 # Publish a post at the end of the vote
 async def end_proposal(chat_id, title, address, proposalAddress, name_dao, description, yes, no, abstain):
-    text = f'Notification!\nProposal end from {name_dao} \n \n {description} \n \n Proposal result: \n yes: {yes} \n no: {no} \n abstain: {abstain}'
-            
+    if (yes is None) and (no is None) and (abstain is None):
+        # no votes
+        text = f"🏁 Voting has ended!\n\n🔵 Voting: {description}\n📜 Proposal: {name_dao}\n\nUnfortunately, the proposal didn't collect a single vote."
+    else:
+        # are votes
+        text = f'🏁 Voting has ended!\n\n🔵 Voting: {description}\n📜 Proposal: {name_dao}\n\n📊 Results:\n✅ For: {yes}\n❌ Against: {no}\n🤐 Abstain: {abstain}\n\nThank you for participating in the voting!'
+
     # Create buttons with DAOs
     buttons = [types.InlineKeyboardButton(text=title, url = f"https://dev-ton-vote.netlify.app/{address}/proposal/{proposalAddress}")] # names[i]
 
@@ -286,7 +291,7 @@ async def end_proposal(chat_id, title, address, proposalAddress, name_dao, descr
 
 
 # Every day information about the proposal is published, when it started
-async def post_info_proposals_day():
+async def post_info_proposals_daily():
     all_addresses = cursor.execute(f"SELECT dao_address FROM DAOs").fetchall()
     addresses = list(item[0] for item in all_addresses)
 
@@ -302,6 +307,11 @@ async def post_info_proposals_day():
                 request = api.proposalAddressInfo(proposalAddress)
                 title = request[0]
                 description = request[1]
+
+                # To check daily notifications
+                proposalStartTimeUNIX = request[3]
+                proposalEndTimeUNIX = request[4]
+
                 proposalStartTime = datetime.fromtimestamp(request[3])
                 proposalEndTime = datetime.fromtimestamp(request[4])
                 yes = request[5]
@@ -310,9 +320,21 @@ async def post_info_proposals_day():
             except:
                 return
             
-
             name_dao = cursor.execute(f"SELECT name_dao FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0] # Name of DAO
-            text = f'Notification! \n Proposal from {name_dao} \n \n {description} \n \n start: {proposalStartTime} \n end: {proposalEndTime}, \n \n Proposal result: \n yes: {yes} \n no: {no} \n abstain: {abstain}'
+
+
+            if (datetime.now().timestamp() > proposalStartTimeUNIX):
+                if (yes is None) and (no is None) and (abstain is None):
+                    # Proposal started, but no votes
+                    text = f"📅 Daily proposal update\n\n🔵 Voting: {description}\n📜 Proposal: {name_dao}\n\n🔚 End time: {proposalEndTime}\n\nThe proposal is active, vote!"
+                else:
+                    # Proposal started and there are votes
+                    text = f"📅 Daily proposal update\n\n🔵 Voting: {description}\n📜 Proposal: {name_dao}\n\n📊 Results:\n✅ For: {yes}\n❌ Against: {no}\n🤐 Abstain: {abstain}\n\n🔚 End time: {proposalEndTime}\n\nThe proposal is active, vote!"
+            else:
+                # Proposal not active yet
+                text = f'📅 Daily proposal update\n\n🔵 Voting: {description}\n📜 Proposal: {name_dao}\n\nWait for the voting to start!'
+
+            
             chat_id = cursor.execute(f"SELECT group_id FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
 
             # Create buttons with DAOs
@@ -330,7 +352,7 @@ async def post_info_proposals_day():
 # Bot launch
 if __name__ == '__main__':
     scheduler.add_job(post_new_proposal, "interval", minutes = 1) # minutes = 1
-    scheduler.add_job(post_info_proposals_day, "interval", days = 1) # minutes = 1
+    scheduler.add_job(post_info_proposals_daily, "interval", days = 1) # minutes = 1
     scheduler.start()
 
     # Bot launch
