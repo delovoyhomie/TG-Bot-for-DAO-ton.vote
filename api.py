@@ -1,9 +1,10 @@
 import requests, json
+import endpoints_cache
 
 def daos(daoAddress):
 
     # Запрос на json с DAOs
-    url = f'https://dev-ton-vote-cache.herokuapp.com/daos'
+    url = f'{endpoints_cache.production}/daos'
 
     try:
         response = requests.get(url)
@@ -19,7 +20,7 @@ def daos(daoAddress):
 
 def daoAddressInfo(daoAddress):
     # Запрос на json с предложениями по DAO
-    url = f'https://dev-ton-vote-cache.herokuapp.com/dao/{daoAddress}'
+    url = f'{endpoints_cache.production}/dao/{daoAddress}'
 
     try:
         response = requests.get(url)
@@ -46,7 +47,7 @@ def daoAddressInfo(daoAddress):
 def proposalAddressInfo(proposalAddress):
 
     # Запрос на json с предложениями по DAO
-    url = f'https://dev-ton-vote-cache.herokuapp.com/proposal/{proposalAddress}'
+    url = f'{endpoints_cache.production}/proposal/{proposalAddress}'
 
     try:
         response = requests.get(url)
