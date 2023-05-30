@@ -17,7 +17,7 @@ storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
 # Establishing a connection to the database
-conn = sqlite3.connect('database.db')  # Provide the name of your database or its path.
+conn = sqlite3.connect('TG-Bot-for-DAO-ton.vote/database.db')  # Provide the name of your database or its path.
 cursor = conn.cursor() # Create a cursor
 
 scheduler = AsyncIOScheduler() 
