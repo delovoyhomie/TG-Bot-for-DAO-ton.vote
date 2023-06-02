@@ -353,7 +353,7 @@ async def post_info_proposals_daily():
 # Bot launch
 if __name__ == '__main__':
     scheduler.add_job(post_new_proposal, "interval", minutes = 1) # minutes = 1
-    scheduler.add_job(post_info_proposals_daily, "interval", seconds = 3) # day = 1
+    scheduler.add_job(post_info_proposals_daily, "interval", day = 1) # day = 1
     scheduler.start()
 
     # Bot launch
