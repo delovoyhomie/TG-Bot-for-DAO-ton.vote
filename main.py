@@ -8,11 +8,10 @@ from aiogram.dispatcher.filters import Command, ChatTypeFilter
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
 import sqlite3, json
-from config import TOKEN
-import api
+import config, api
 
 
-bot = Bot(token=TOKEN)
+bot = Bot(token=config.TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
@@ -340,7 +339,7 @@ async def post_info_proposals_daily():
             chat_id = cursor.execute(f"SELECT group_id FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
 
             # Create buttons with DAOs
-            buttons = [types.InlineKeyboardButton(text=title, url = f"https://dev-ton-vote.netlify.app/{address}/proposal/{proposalAddress}")] # names[i]
+            buttons = [types.InlineKeyboardButton(text=title, url = f"{config.dev}/{address}/proposal/{proposalAddress}")] # names[i]
             
             # Add Buttons to message
             keyboard = types.InlineKeyboardMarkup(row_width=1)
