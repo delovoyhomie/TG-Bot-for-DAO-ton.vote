@@ -328,13 +328,13 @@ async def post_info_proposals_daily():
             if (datetime.now().timestamp() > proposalStartTimeUNIX):
                 if (yes is None) and (no is None) and (abstain is None):
                     # Proposal started, but no votes
-                    text = f"📅 Daily proposal update\n\n🔵 Voting: {description}\n📜 Proposal: {name_dao}\n\n🔚 End time: {proposalEndTime}\n\nThe proposal is active, vote!"
+                    text = f"📅 Daily proposal update\n\n🔵 DAO: {name_dao}\n📜 Proposal: {description}\n\n🔚 End time: {proposalEndTime}\n\nThe proposal is active, vote!"
                 else:
                     # Proposal started and there are votes
-                    text = f"📅 Daily proposal update\n\n🔵 Voting: {description}\n📜 Proposal: {name_dao}\n\n📊 Results:\n✅ For: {yes}\n❌ Against: {no}\n🤐 Abstain: {abstain}\n\n🔚 End time: {proposalEndTime}\n\nThe proposal is active, vote!"
+                    text = f"📅 Daily proposal update\n\n🔵 DAO: {name_dao}\n📜 Proposal: {description}\n\n📊 Results:\n✅ For: {yes}\n❌ Against: {no}\n🤐 Abstain: {abstain}\n\n🔚 End time: {proposalEndTime}\n\nThe proposal is active, vote!"
             else:
                 # Proposal not active yet
-                text = f'📅 Daily proposal update\n\n🔵 Voting: {description}\n📜 Proposal: {name_dao}\n\nWait for the voting to start!'
+                text = f'📅 Daily proposal update\n\n🔵 DAO: {name_dao}\n📜 Proposal: {description}\n\nWait for the voting to start!'
 
             
             chat_id = cursor.execute(f"SELECT group_id FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
@@ -354,7 +354,7 @@ async def post_info_proposals_daily():
 # Bot launch
 if __name__ == '__main__':
     scheduler.add_job(post_new_proposal, "interval", minutes = 1) # minutes = 1
-    scheduler.add_job(post_info_proposals_daily, "interval", minutes = 3) # day = 1
+    scheduler.add_job(post_info_proposals_daily, "interval", seconds = 3) # day = 1
     scheduler.start()
 
     # Bot launch
