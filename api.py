@@ -4,7 +4,7 @@ import endpoints_cache
 def daos(daoAddress):
 
     # Запрос на json с DAOs
-    url = f'{endpoints_cache.production}/daos'
+    url = f'{endpoints_cache.dev}/daos'
 
     try:
         response = requests.get(url)
@@ -20,18 +20,18 @@ def daos(daoAddress):
 
 def daoAddressInfo(daoAddress):
     # Запрос на json с предложениями по DAO
-    url = f'{endpoints_cache.production}/dao/{daoAddress}'
+    url = f'{endpoints_cache.dev}/dao/{daoAddress}'
 
     try:
         response = requests.get(url)
         data = response.json()  # Получение JSON-данных из ответа
 
-        name = json.loads(data['daoMetadata']['name'])['en']
-        about = json.loads(data['daoMetadata']['about'])['en']
-        avatar = data['daoMetadata']['avatar']
-        website = data['daoMetadata']['github'] 
-        telegram = data['daoMetadata']['telegram']
-        github = data['daoMetadata']['github']
+        name = json.loads(data['daoMetadata']['metadataArgs']['name'])['en']
+        about = json.loads(data['daoMetadata']['metadataArgs']['about'])['en']
+        avatar = data['daoMetadata']['metadataArgs']['avatar']
+        website = data['daoMetadata']['metadataArgs']['github'] 
+        telegram = data['daoMetadata']['metadataArgs']['telegram']
+        github = data['daoMetadata']['metadataArgs']['github']
 
         countProposals = data['nextProposalId']
         daoProposals = data['daoProposals']
@@ -41,13 +41,13 @@ def daoAddressInfo(daoAddress):
     except Exception as e:
         print('Произошла ошибка при выполнении запроса (/dao/daoAddress):', e)
 
-# print(daoAddressInfo('EQDi7_28cJItXu5t5evsnEKNtUYv_1aQve21T4bzFxbxJ8HF')[7][0])
+# print(daoAddressInfo('EQC1MLzpKWTL5sXGylnPrGuo6QUkf6NriEkA9qSEhlI3xgZM'))
 
 
 def proposalAddressInfo(proposalAddress):
 
     # Запрос на json с предложениями по DAO
-    url = f'{endpoints_cache.production}/proposal/{proposalAddress}'
+    url = f'{endpoints_cache.dev}/proposal/{proposalAddress}'
 
     try:
         response = requests.get(url)
@@ -73,4 +73,4 @@ def proposalAddressInfo(proposalAddress):
     except Exception as e:
         print('Произошла ошибка при выполнении запроса (/proposal/proposalAddress):', e)
     
-# print(proposalAddressInfo('EQDfb8TzJjHrbeK7KnOv_Ao5pVBTP02uK8NiXaP4MlmU0y6N')[1])
+# print(proposalAddressInfo('EQDUYK1eiH8a67w0QaiHyD6Xx6Y8DpUO22B00L9nY9CdTmgQ'))
