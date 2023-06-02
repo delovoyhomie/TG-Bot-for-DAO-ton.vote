@@ -17,7 +17,7 @@ storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
 # Establishing a connection to the database
-conn = sqlite3.connect('TG-Bot-for-DAO-ton.vote/database.db')  # Provide the name of your database or its path.
+conn = sqlite3.connect('database.db')  # Provide the name of your database or its path.
 cursor = conn.cursor() # Create a cursor
 
 scheduler = AsyncIOScheduler() 
@@ -32,7 +32,7 @@ class States(StatesGroup):
 
 ########################################################
 # Welcome message for the group
-@dp.message_handler(commands=['start'], chat_type=[types.ChatType.GROUP, types.ChatType.SUPERGROUP])
+@dp.message_handler(commands=['start'], state = '*', chat_type=[types.ChatType.GROUP, types.ChatType.SUPERGROUP])
 async def cmd_start(message: types.Message, state: FSMContext):
 
     # Check for administrator or group creator
@@ -50,7 +50,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
 
 
 # Welcome message for personal messages with the bot
-@dp.message_handler(commands=['start'], chat_type=types.ChatType.PRIVATE)
+@dp.message_handler(commands=['start'], state = '*', chat_type=types.ChatType.PRIVATE)
 async def cmd_start(message: types.Message, state: FSMContext):
     await message.answer("Greetings!\n\nI was created to operate in groups, assisting the entire team in keeping track of new DAO proposals. To start using me in your group, follow these steps:\n\n1) Add me to the group where you want to receive DAO notifications.\n2) Appoint me as an administrator in this group. This is necessary for me to correctly process commands and manage notifications.\n3) Grant me the right to delete messages. This will enable me to properly handle the commands that you and other group members will send.\n\nAfter completing these steps, you will be able to use all the same commands, but now within the group. This will allow all group members to stay updated on the latest proposals for the DAOs that interest you.\n\nIf you encounter any problems or have questions during the setup process, contact my creator - @delovoyslava, he's always ready to help!")
 
@@ -168,6 +168,7 @@ async def process_callback_button(callback: types.CallbackQuery, state: FSMConte
     cursor.execute(f"DELETE from DAOs WHERE dao_address == '{button_data}'"), conn.commit() # Delete a row with all the information from the database
     await callback.message.answer(f"You have removed the DAO named *{name}*", parse_mode='MarkdownV2')
     await callback.message.delete()
+    await state.finish()
 
 
 
@@ -197,6 +198,7 @@ async def handle_message(message: types.Message, state: FSMContext):
                 await message.answer("A DAO with such an address already exists."), await state.finish()
         else:
             await message.delete()
+            await state.finish()
 
 
 
@@ -339,7 +341,7 @@ async def post_info_proposals_daily():
 
             # Create buttons with DAOs
             buttons = [types.InlineKeyboardButton(text=title, url = f"https://dev-ton-vote.netlify.app/{address}/proposal/{proposalAddress}")] # names[i]
-
+            
             # Add Buttons to message
             keyboard = types.InlineKeyboardMarkup(row_width=1)
             keyboard.add(*buttons)
@@ -352,7 +354,7 @@ async def post_info_proposals_daily():
 # Bot launch
 if __name__ == '__main__':
     scheduler.add_job(post_new_proposal, "interval", minutes = 1) # minutes = 1
-    scheduler.add_job(post_info_proposals_daily, "interval", days = 1) # minutes = 1
+    scheduler.add_job(post_info_proposals_daily, "interval", minutes = 3) # day = 1
     scheduler.start()
 
     # Bot launch
