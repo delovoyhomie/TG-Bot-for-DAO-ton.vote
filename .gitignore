@@ -1,3 +1,4 @@
 *.db
 __pycache__
 token.py
+config.py
