@@ -186,15 +186,16 @@ async def handle_message(message: types.Message, state: FSMContext):
                 admins.append(user['user']['id'])
 
         if message.from_user.id in admins:
-            dao_address = message.text
-            group_id = message.chat.id
-            if api.daoAddressInfo(dao_address) is None:   
-                await message.answer("A DAO with such an address does not exist, try a different address."), await state.finish()
-            elif not cursor.execute(f"SELECT dao_address FROM DAOs  WHERE group_id == '{group_id}' AND dao_address == '{dao_address}'").fetchall():
-                await message.answer(f"You have entered the following address: \n```{dao_address}```", parse_mode='MarkdownV2'), await state.finish()
-                cursor.execute(f"INSERT INTO DAOs (dao_address, group_id, name_dao, count_proposals) VALUES ('{dao_address}', '{group_id}', '{api.daoAddressInfo(dao_address)[0]}', '{api.daoAddressInfo(dao_address)[6]}')"), conn.commit() # Add a new row to the database
-            else:
-                await message.answer("A DAO with such an address already exists."), await state.finish()
+            if not(message['reply_to_message'] is None) and message['reply_to_message']['from']['id'] == config.bot_id:
+                dao_address = message.text
+                group_id = message.chat.id
+                if api.daoAddressInfo(dao_address) is None:   
+                    await message.answer("A DAO with such an address does not exist, try a different address."), await state.finish()
+                elif not cursor.execute(f"SELECT dao_address FROM DAOs  WHERE group_id == '{group_id}' AND dao_address == '{dao_address}'").fetchall():
+                    await message.answer(f"You have entered the following address: \n```{dao_address}```", parse_mode='MarkdownV2'), await state.finish()
+                    cursor.execute(f"INSERT INTO DAOs (dao_address, group_id, name_dao, count_proposals) VALUES ('{dao_address}', '{group_id}', '{api.daoAddressInfo(dao_address)[0]}', '{api.daoAddressInfo(dao_address)[6]}')"), conn.commit() # Add a new row to the database
+                else:
+                    await message.answer("A DAO with such an address already exists."), await state.finish()
         else:
             await message.delete()
             await state.finish()
@@ -353,7 +354,7 @@ async def post_info_proposals_daily():
 # Bot launch
 if __name__ == '__main__':
     scheduler.add_job(post_new_proposal, "interval", minutes = 1) # minutes = 1
-    scheduler.add_job(post_info_proposals_daily, "interval", day = 1) # day = 1
+    scheduler.add_job(post_info_proposals_daily, "interval", days = 1) # days = 1
     scheduler.start()
 
     # Bot launch
