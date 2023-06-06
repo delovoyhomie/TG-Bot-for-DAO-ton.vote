@@ -104,7 +104,7 @@ async def cmd_inline_url(message: types.Message):
             # Creatе buttons with DAOs
             buttons = []
             for i, item in enumerate(addresses):
-                buttons.append(types.InlineKeyboardButton(text=names[i], url = f"https://dev-ton-vote.netlify.app/{item}")) # https://dev-ton-vote-cache.herokuapp.com/dao/{item}
+                buttons.append(types.InlineKeyboardButton(text=names[i], url = f"{config.dev}/{item}")) # https://dev-ton-vote-cache.herokuapp.com/dao/{item}
 
             # Add buttons to message
             keyboard = types.InlineKeyboardMarkup(row_width=1)
@@ -192,7 +192,7 @@ async def handle_message(message: types.Message, state: FSMContext):
                 if api.daoAddressInfo(dao_address) is None:   
                     await message.answer("A DAO with such an address does not exist, try a different address."), await state.finish()
                 elif not cursor.execute(f"SELECT dao_address FROM DAOs  WHERE group_id == '{group_id}' AND dao_address == '{dao_address}'").fetchall():
-                    await message.answer(f"You have entered the following address: \n```{dao_address}```", parse_mode='MarkdownV2'), await state.finish()
+                    await message.answer(f"Success\! You have entered the following address: \n```{dao_address}```\n\nYou are now receiving notifications about new proposals in your DAO, the address of which you've just entered\.\n\nFor more information, refer to the bot using the /start command in the menu to the right of the input field\.", parse_mode='MarkdownV2'), await state.finish()
                     cursor.execute(f"INSERT INTO DAOs (dao_address, group_id, name_dao, count_proposals) VALUES ('{dao_address}', '{group_id}', '{api.daoAddressInfo(dao_address)[0]}', '{api.daoAddressInfo(dao_address)[6]}')"), conn.commit() # Add a new row to the database
                 else:
                     await message.answer("A DAO with such an address already exists."), await state.finish()
@@ -244,7 +244,7 @@ async def post_new_proposal():
                 chat_id = cursor.execute(f"SELECT group_id FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
 
                 # Create buttons with DAOs
-                buttons = [types.InlineKeyboardButton(text=title, url = f"https://dev-ton-vote.netlify.app/{address}/proposal/{proposalAddress}")] # names[i]
+                buttons = [types.InlineKeyboardButton(text=title, url = f"{config.dev}/{address}/proposal/{proposalAddress}")] # names[i]
                 
                 # Add Buttons to message
                 keyboard = types.InlineKeyboardMarkup(row_width=1)
@@ -262,7 +262,7 @@ async def start_proposal(chat_id, title, address, proposalAddress, name_dao, des
     text = f'🚀 Voting has begun!\n\n🔵 Voting: {description}\n📜 Proposal: {name_dao}\n\n🔚 End time: {proposalEndTime}\n\nVoting has started! Please review the proposal and participate in the voting!'
 
     # Create buttons with DAOs
-    buttons = [types.InlineKeyboardButton(text=title, url = f"https://dev-ton-vote.netlify.app/{address}/proposal/{proposalAddress}")] # names[i]
+    buttons = [types.InlineKeyboardButton(text=title, url = f"{config.dev}/{address}/proposal/{proposalAddress}")] # names[i]
 
     # Add Buttons to message
     keyboard = types.InlineKeyboardMarkup(row_width=1)
@@ -282,7 +282,7 @@ async def end_proposal(chat_id, title, address, proposalAddress, name_dao, descr
         text = f'🏁 Voting has ended!\n\n🔵 Voting: {description}\n📜 Proposal: {name_dao}\n\n📊 Results:\n✅ For: {yes}\n❌ Against: {no}\n🤐 Abstain: {abstain}\n\nThank you for participating in the voting!'
 
     # Create buttons with DAOs
-    buttons = [types.InlineKeyboardButton(text=title, url = f"https://dev-ton-vote.netlify.app/{address}/proposal/{proposalAddress}")] # names[i]
+    buttons = [types.InlineKeyboardButton(text=title, url = f"{config.dev}/{address}/proposal/{proposalAddress}")] # names[i]
 
     # Add Buttons to message
     keyboard = types.InlineKeyboardMarkup(row_width=1)

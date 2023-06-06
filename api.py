@@ -1,10 +1,11 @@
 import requests, json
 import endpoints_cache
 
+# /daos is not used
 def daos(daoAddress):
 
     # Запрос на json с DAOs
-    url = f'{endpoints_cache.dev}/daos'
+    url = f'{endpoints_cache.dev_api}/daos'
 
     try:
         response = requests.get(url)
@@ -20,7 +21,7 @@ def daos(daoAddress):
 
 def daoAddressInfo(daoAddress):
     # Запрос на json с предложениями по DAO
-    url = f'{endpoints_cache.dev}/dao/{daoAddress}'
+    url = f'{endpoints_cache.dev_api}/dao/{daoAddress}'
 
     try:
         response = requests.get(url)
@@ -41,13 +42,13 @@ def daoAddressInfo(daoAddress):
     except Exception as e:
         print('Произошла ошибка при выполнении запроса (/dao/daoAddress):', e)
 
-# print(daoAddressInfo('EQC1MLzpKWTL5sXGylnPrGuo6QUkf6NriEkA9qSEhlI3xgZM'))
+# print(daoAddressInfo('EQA-Qno-vCjLbDJXxOB-vhHY8sH8hVbH4if-iSMi-JwaIdP4'))
 
 
 def proposalAddressInfo(proposalAddress):
 
     # Запрос на json с предложениями по DAO
-    url = f'{endpoints_cache.dev}/proposal/{proposalAddress}'
+    url = f'{endpoints_cache.dev_api}/proposal/{proposalAddress}'
 
     try:
         response = requests.get(url)
