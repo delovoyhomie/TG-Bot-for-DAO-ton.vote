@@ -5,7 +5,7 @@ import endpoints_cache
 def daos(daoAddress):
 
     # Запрос на json с DAOs
-    url = f'{endpoints_cache.dev_api}/daos'
+    url = f'{endpoints_cache.production_api}/daos'
 
     try:
         response = requests.get(url)
@@ -21,7 +21,7 @@ def daos(daoAddress):
 
 def daoAddressInfo(daoAddress):
     # Запрос на json с предложениями по DAO
-    url = f'{endpoints_cache.dev_api}/dao/{daoAddress}'
+    url = f'{endpoints_cache.production_api}/dao/{daoAddress}'
 
     try:
         response = requests.get(url)
@@ -48,7 +48,7 @@ def daoAddressInfo(daoAddress):
 def proposalAddressInfo(proposalAddress):
 
     # Запрос на json с предложениями по DAO
-    url = f'{endpoints_cache.dev_api}/proposal/{proposalAddress}'
+    url = f'{endpoints_cache.production_api}/proposal/{proposalAddress}'
 
     try:
         response = requests.get(url)

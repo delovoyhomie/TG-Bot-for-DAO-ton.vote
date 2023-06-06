@@ -104,7 +104,7 @@ async def cmd_inline_url(message: types.Message):
             # Creatе buttons with DAOs
             buttons = []
             for i, item in enumerate(addresses):
-                buttons.append(types.InlineKeyboardButton(text=names[i], url = f"{config.dev}/{item}")) # https://dev-ton-vote-cache.herokuapp.com/dao/{item}
+                buttons.append(types.InlineKeyboardButton(text=names[i], url = f"{config.prod}/{item}")) # https://dev-ton-vote-cache.herokuapp.com/dao/{item}
 
             # Add buttons to message
             keyboard = types.InlineKeyboardMarkup(row_width=1)
@@ -244,7 +244,7 @@ async def post_new_proposal():
                 chat_id = cursor.execute(f"SELECT group_id FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
 
                 # Create buttons with DAOs
-                buttons = [types.InlineKeyboardButton(text=title, url = f"{config.dev}/{address}/proposal/{proposalAddress}")] # names[i]
+                buttons = [types.InlineKeyboardButton(text=title, url = f"{config.prod}/{address}/proposal/{proposalAddress}")] # names[i]
                 
                 # Add Buttons to message
                 keyboard = types.InlineKeyboardMarkup(row_width=1)
@@ -262,7 +262,7 @@ async def start_proposal(chat_id, title, address, proposalAddress, name_dao, des
     text = f'🚀 Voting has begun!\n\n🔵 Voting: {description}\n📜 Proposal: {name_dao}\n\n🔚 End time: {proposalEndTime}\n\nVoting has started! Please review the proposal and participate in the voting!'
 
     # Create buttons with DAOs
-    buttons = [types.InlineKeyboardButton(text=title, url = f"{config.dev}/{address}/proposal/{proposalAddress}")] # names[i]
+    buttons = [types.InlineKeyboardButton(text=title, url = f"{config.prod}/{address}/proposal/{proposalAddress}")] # names[i]
 
     # Add Buttons to message
     keyboard = types.InlineKeyboardMarkup(row_width=1)
@@ -282,7 +282,7 @@ async def end_proposal(chat_id, title, address, proposalAddress, name_dao, descr
         text = f'🏁 Voting has ended!\n\n🔵 Voting: {description}\n📜 Proposal: {name_dao}\n\n📊 Results:\n✅ For: {yes}\n❌ Against: {no}\n🤐 Abstain: {abstain}\n\nThank you for participating in the voting!'
 
     # Create buttons with DAOs
-    buttons = [types.InlineKeyboardButton(text=title, url = f"{config.dev}/{address}/proposal/{proposalAddress}")] # names[i]
+    buttons = [types.InlineKeyboardButton(text=title, url = f"{config.prod}/{address}/proposal/{proposalAddress}")] # names[i]
 
     # Add Buttons to message
     keyboard = types.InlineKeyboardMarkup(row_width=1)
@@ -340,7 +340,7 @@ async def post_info_proposals_daily():
             chat_id = cursor.execute(f"SELECT group_id FROM DAOs WHERE dao_address == '{address}'").fetchall()[0][0]
 
             # Create buttons with DAOs
-            buttons = [types.InlineKeyboardButton(text=title, url = f"{config.dev}/{address}/proposal/{proposalAddress}")] # names[i]
+            buttons = [types.InlineKeyboardButton(text=title, url = f"{config.prod}/{address}/proposal/{proposalAddress}")] # names[i]
             
             # Add Buttons to message
             keyboard = types.InlineKeyboardMarkup(row_width=1)
